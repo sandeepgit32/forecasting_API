@@ -3,7 +3,7 @@
 A simple API to get the future forecast for time series data using Flask.
 
 
-### Steps of Code Execution (Development)
+### Steps of Code Execution (Localhost)
 
   1. Install `Python 3.9`.
   2. Clone repository and go inside this directory.
@@ -16,7 +16,7 @@ A simple API to get the future forecast for time series data using Flask.
   6. To stop the server press `CTRL + C`.
 
 
-### Steps of Code Execution (Production)
+### Steps of Code Execution (Docker)
 
   1. Install `Docker` and `Docker Compose`.
   2. Clone repository and go inside this directory
