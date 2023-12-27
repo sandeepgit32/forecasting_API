@@ -7,7 +7,7 @@ A simple API to get the future forecast for time series data using Flask.
 
   1. Install `Python 3.9`.
   2. Clone repository and go inside this directory.
-  3. Create a Python `virtualenv` and enter inside the `virtuallenv`.
+  3. Create a Python `virtualenv` and enter inside the `virtualenv`.
   4. Run the following command.
   ```bash
     python app.py
