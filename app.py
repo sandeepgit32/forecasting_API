@@ -44,11 +44,20 @@ def forecast():
     elif(request.method == "POST"): 
         input_data = request.get_json()
 
-        date_col = os.environ.get("DATE_COLUMN")
-        value_col = os.environ.get("VALUE_COLUMN")
-        forecast_length = input_data.get("forecastLength")
         input_file_path = input_data.get("filePath")
-        if ((input_file_path is None) or (forecast_length is None)):
+        forecast_length = input_data.get("forecastLength")
+        date_col = input_data.get("dateCol")
+        value_col = input_data.get("valueCol")
+        forecast_type = input_data.get("forecastType") # "monthly"/"weekly"
+        period_of_seasonality = input_data.get("periodOfSeasonality")
+        if (
+            (input_file_path is None)
+            or (forecast_length is None)
+            or (date_col is None)
+            or (value_col is None)
+            or (forecast_type not in ("monthly", "weekly"))
+            or (period_of_seasonality is None)
+        ):
             return jsonify({
                 "status": "False",
                 "message": "Invalid input"
@@ -57,8 +66,18 @@ def forecast():
             data_df = utils.fetch_data(
                 input_file_path, date_col, value_col
             )
+            if type(data_df) is dict:
+                return jsonify({
+                    "status": "False",
+                    "message": data_df["message"]
+                }), 400
             utils.calculate_forecast_data(
-                data_df, forecast_length, date_col, value_col
+                data_df, 
+                forecast_length, 
+                date_col, 
+                value_col, 
+                forecast_type, 
+                period_of_seasonality
             )
             return jsonify({
                 "status": "True",
