@@ -2,8 +2,10 @@ import os
 import itertools
 import pandas as pd
 import statsmodels.api as sm
+from dotenv import load_dotenv
+load_dotenv(".env", verbose=True)
 forecastDataPath = os.environ.get("FORECAST_DATA_PATH")
-CONFIDENCE_LEVEL = 90
+CONFIDENCE_LEVEL = float(os.environ.get("CONFIDENCE_LEVEL"))
 
 
 def process_data(value_df, date_col, value_col, forecast_type):
@@ -14,10 +16,10 @@ def process_data(value_df, date_col, value_col, forecast_type):
     print(value_df)
     value_df.set_index(date_col, inplace=True)
     if forecast_type == "monthly":
-        purchase_ts = value_df[value_col].resample("MS").sum()
+        value_ts = value_df[value_col].resample("MS").sum()
     elif forecast_type == "weekly":
-        purchase_ts = value_df[value_col].resample("W-MON").sum()
-    return purchase_ts
+        value_ts = value_df[value_col].resample("W-MON").sum()
+    return value_ts
 
 
 def get_forecast_using_sarimax_model(
@@ -127,7 +129,7 @@ def fetch_data(input_file_path, date_col, value_col):
             df = pd.read_excel(input_file_path)
         else:
             return {
-                "message": "Invalid file format. Valid format: '.csv' and '.xlsx'."
+                "message": "Invalid file format (Valid format: `.csv` and `.xlsx`)."
             }
     except:
         return {
@@ -160,4 +162,5 @@ def calculate_forecast_data(
     print('-------->', forecast_ci, mean_forecast)
     forecast = pd.concat([forecast_ci, mean_forecast], axis=1)
     print(forecast)
+    forecast[date_col] = forecast.index
     forecast.to_csv(forecastDataPath, index=False)

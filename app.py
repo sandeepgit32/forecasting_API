@@ -55,12 +55,17 @@ def forecast():
             or (forecast_length is None)
             or (date_col is None)
             or (value_col is None)
-            or (forecast_type not in ("monthly", "weekly"))
+            or (forecast_type is None)
             or (period_of_seasonality is None)
         ):
             return jsonify({
                 "status": "False",
                 "message": "Invalid input"
+            }), 400
+        if forecast_type not in ("monthly", "weekly"):
+            return jsonify({
+                "status": "False",
+                "message": "Invalid forecast type (valid type: monthly/weekly)"
             }), 400
         try:
             data_df = utils.fetch_data(
