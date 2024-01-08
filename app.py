@@ -29,27 +29,13 @@ def forecast():
     - Returns a 500 error if there is an error in forecasting.
     """
     forecastDataPath = os.environ.get("FORECAST_DATA_PATH")
-    if(request.method == "GET"):
-        if os.path.exists(forecastDataPath):
-            return jsonify({
-                "status": "True",
-                "dataPath": forecastDataPath
-            }), 200
-        else:
-            return jsonify({
-                "status": "False",
-                "message": "No forecast data found"
-            }), 404
-
-    elif(request.method == "POST"): 
-        input_data = request.get_json()
-
-        input_file_path = input_data.get("filePath")
-        forecast_length = input_data.get("forecastLength")
-        date_col = input_data.get("dateCol")
-        value_col = input_data.get("valueCol")
-        forecast_type = input_data.get("forecastType") # "monthly"/"weekly"
-        period_of_seasonality = input_data.get("periodOfSeasonality")
+    if(request.method == "GET"): 
+        input_file_path = os.environ.get("INPUT_DATA_PATH") 
+        forecast_length = int(request.args.get("forecastLength"))
+        date_col = request.args.get("dateCol")
+        value_col = request.args.get("valueCol")
+        forecast_type = request.args.get("forecastType")
+        period_of_seasonality = int(request.args.get("periodOfSeasonality"))
         if (
             (input_file_path is None)
             or (forecast_length is None)
@@ -60,7 +46,7 @@ def forecast():
         ):
             return jsonify({
                 "status": "False",
-                "message": "Invalid input"
+                "message": "Invalid URL"
             }), 400
         if forecast_type not in ("monthly", "weekly"):
             return jsonify({

@@ -13,7 +13,6 @@ def process_data(value_df, date_col, value_col, forecast_type):
     This function will process the value_df containing the date-wise values
     by aggregating the into month-wise summary.
     """
-    print(value_df)
     value_df.set_index(date_col, inplace=True)
     if forecast_type == "monthly":
         value_ts = value_df[value_col].resample("MS").sum()
