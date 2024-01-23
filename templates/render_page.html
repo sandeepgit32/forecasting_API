@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto-Close Window</title>
+    <script>
+        function closeWindowWithCountdown() {
+            var seconds = 10;
+
+            function updateCountdown() {
+                document.getElementById('countdown').innerText = seconds;
+                seconds--;
+
+                if (seconds < 0) {
+                    window.close();
+                } else {
+                    setTimeout(updateCountdown, 1000); // Update every 1 second
+                }
+            }
+
+            updateCountdown();
+        }
+
+        window.onload = closeWindowWithCountdown;
+    </script>
+</head>
+<body>
+    <div style="text-align:center">
+        {% if status == "True" %}
+        <h3>Forcasting is successful</h3>
+        <p>The forecast data can be found at '{{ dataPath }}'</p>
+        {% else %}
+        <h3>Error in forecasting</h3>
+        <p><b>Reason</b>: {{ message }}</p>
+        {% endif %}
+        <p>This page will automatically close in <span id="countdown"></span> seconds...</p>
+    </div>
+</body>
+</html>

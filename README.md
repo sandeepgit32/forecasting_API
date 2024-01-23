@@ -33,7 +33,7 @@ A simple API to get the future forecast for time series data using Flask.
     docker-compose down
   ```
 
-### API Call (POST request)
+### API Call (GET request)
 
   - Request: Send the HTTP GET request on the following endpoint format:
   ```

@@ -1,5 +1,5 @@
 import os, utils
-from flask import Flask, jsonify, request 
+from flask import Flask, jsonify, request, render_template
 from dotenv import load_dotenv
 load_dotenv(".env", verbose=True)
 
@@ -29,13 +29,20 @@ def forecast():
     - Returns a 500 error if there is an error in forecasting.
     """
     forecastDataPath = os.environ.get("FORECAST_DATA_PATH")
-    if(request.method == "GET"): 
-        input_file_path = os.environ.get("INPUT_DATA_PATH") 
-        forecast_length = int(request.args.get("forecastLength"))
-        date_col = request.args.get("dateCol")
-        value_col = request.args.get("valueCol")
-        forecast_type = request.args.get("forecastType")
-        period_of_seasonality = int(request.args.get("periodOfSeasonality"))
+    if(request.method == "GET"):
+        try:
+            input_file_path = os.environ.get("INPUT_DATA_PATH") 
+            forecast_length = int(request.args.get("forecastLength"))
+            date_col = request.args.get("dateCol")
+            value_col = request.args.get("valueCol")
+            forecast_type = request.args.get("forecastType")
+            period_of_seasonality = int(request.args.get("periodOfSeasonality"))
+        except:
+            return render_template(
+                "render_page.html", 
+                status="False",
+                message="Invalid URL"
+            )
         if (
             (input_file_path is None)
             or (forecast_length is None)
@@ -44,24 +51,27 @@ def forecast():
             or (forecast_type is None)
             or (period_of_seasonality is None)
         ):
-            return jsonify({
-                "status": "False",
-                "message": "Invalid URL"
-            }), 400
+            return render_template(
+                "render_page.html", 
+                status="False",
+                message="Invalid URL"
+            )
         if forecast_type not in ("monthly", "weekly"):
-            return jsonify({
-                "status": "False",
-                "message": "Invalid forecast type (valid type: monthly/weekly)"
-            }), 400
+            return render_template(
+                "render_page.html", 
+                status="False",
+                message="Invalid forecast type (valid type: monthly/weekly)"
+            )
         try:
             data_df = utils.fetch_data(
                 input_file_path, date_col, value_col
             )
             if type(data_df) is dict:
-                return jsonify({
-                    "status": "False",
-                    "message": data_df["message"]
-                }), 400
+                return render_template(
+                    "render_page.html", 
+                    status="False",
+                    message=data_df["message"]
+                )
             utils.calculate_forecast_data(
                 data_df, 
                 forecast_length, 
@@ -70,15 +80,17 @@ def forecast():
                 forecast_type, 
                 period_of_seasonality
             )
-            return jsonify({
-                "status": "True",
-                "dataPath": forecastDataPath
-            }), 200
+            return render_template(
+                "render_page.html", 
+                status="True",
+                dataPath=forecastDataPath
+            )
         except:
-            return jsonify({
-                "status": "False",
-                "message": "Error in forecasting"
-            }), 500
+            return render_template(
+                "render_page.html", 
+                status="False",
+                message=data_df["message"]
+            )
 
 
 # main function 
