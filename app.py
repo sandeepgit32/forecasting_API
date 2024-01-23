@@ -7,7 +7,7 @@ load_dotenv(".env", verbose=True)
 app = Flask(__name__) 
 
 
-@app.route("/forecast", methods = ["GET", "POST"]) 
+@app.route("/forecast", methods = ["GET"]) 
 def forecast():
     """
     Endpoint for performing forecasting.
