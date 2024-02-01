@@ -2,8 +2,8 @@ import os, utils, db
 from functools import wraps
 from flask_bcrypt import Bcrypt
 from flask import Flask, jsonify, request, render_template, redirect, url_for, session, send_from_directory
-from dotenv import load_dotenv
 from flask_bcrypt import Bcrypt
+from dotenv import load_dotenv
 load_dotenv(".env", verbose=True)
 
 

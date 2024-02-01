@@ -1,6 +1,13 @@
 import os
 import json
 import base64
+from dotenv import load_dotenv
+load_dotenv(".env", verbose=True)
+DB_DIRECTORY = os.environ.get('DB_DIRECTORY')
+
+
+def get_file_path(base_file_name):
+    return os.path.join(DB_DIRECTORY, base_file_name)
 
 
 def encode_username(username):
@@ -19,26 +26,18 @@ def retrieve_data_from_json(filename):
 
 
 def save_password_hash(username, hashPassword):
-    print("---------------*******", hashPassword)
     encoded_username = encode_username(username)
-    with open(f'db/{encoded_username}.bin', "wb") as file:
+    file_path = get_file_path(f'{encoded_username}.bin')
+    with open(file_path, "wb") as file:
         file.write(hashPassword)
 
 
 def retrieve_password_hash(username):
     encoded_username = encode_username(username)
-    with open(f'db/{encoded_username}.bin', "rb") as file:
+    file_path = get_file_path(f'{encoded_username}.bin')
+    with open(file_path, "rb") as file:
         binary_data = file.read()
     return binary_data
-
-
-# def check_password_hash(username, hashPassword):
-#     encoded_username = encode_username(username)
-#     retrieve_password_hash = retrieve_binary_data(f'db/{encoded_username}.bin')
-#     if hashPassword == retrieve_password_hash:
-#         return True
-#     else:
-#         return False
 
 
 def add_user_data(username, name, surname, hashPassword):
@@ -49,19 +48,21 @@ def add_user_data(username, name, surname, hashPassword):
         "surname": surname
     }
     save_password_hash(username, hashPassword)
-    save_data_in_json(f'db/{encoded_username}.json', user_data)
+    file_path = get_file_path(f'{encoded_username}.json')
+    save_data_in_json(file_path, user_data)
 
 
 def get_user_data(username):
     encoded_username = encode_username(username)
-    filename = f'db/{encoded_username}.json'
-    user_data = retrieve_data_from_json(filename)
+    file_path = get_file_path(f'{encoded_username}.json')
+    user_data = retrieve_data_from_json(file_path)
     return user_data
 
 
 def is_user_exist(username):
     encoded_username = encode_username(username)
-    if os.path.exists(f'db/{encoded_username}.json'):
+    file_path = get_file_path(f'{encoded_username}.json')
+    if os.path.exists(file_path):
         return True
     else:
         return False
