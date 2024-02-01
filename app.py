@@ -188,6 +188,29 @@ def forecast():
             )
 
 
+@app.route("/statistics", methods=["GET"])
+@authentication_required
+def statistics():
+    if request.method == "GET":
+        try:
+            input_file_path = os.environ.get("INPUT_DATA_PATH")
+            statisticsDataPath = os.environ.get("STATISTICS_DATA_PATH")
+            data_df = utils.fetch_raw_data(input_file_path)
+            if type(data_df) is dict:
+                return render_template(
+                    "statistics.html", status="False", message=data_df["message"]
+                )
+            describe_df = data_df.describe(include='all')
+            describe_df.to_csv(statisticsDataPath)
+            return render_template(
+                "statistics.html", status="True", dataPath=statisticsDataPath
+            )
+        except:
+            return render_template(
+                "statistics.html", status="False", message="Internal server error"
+            )
+
+
 # main function
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

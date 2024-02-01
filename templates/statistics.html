@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>Forecast Application</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="icon" type="image/png" href="{{ url_for('static', filename='images/icons/favicon.ico') }}"/>
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css')}}">
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='fonts/font-awesome-4.7.0/css/font-awesome.min.css')}}">
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='fonts/Linearicons-Free-v1.0.0/icon-font.min.css')}}">
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='vendor/css-hamburgers/hamburgers.min.css')}}">
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='vendor/select2/select2.min.css')}}">
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/util.css')}}">
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css')}}">
+    <script>
+        function closeWindowWithCountdown() {
+            var seconds = 10;
+
+            function updateCountdown() {
+                document.getElementById('countdown').innerText = seconds;
+                seconds--;
+
+                if (seconds < 0) {
+                    window.close();
+                } else {
+                    setTimeout(updateCountdown, 1000); // Update every 1 second
+                }
+            }
+
+            updateCountdown();
+        }
+
+        window.onload = closeWindowWithCountdown;
+    </script>
+</head>
+<body>
+    <div class="limiter">
+		<div class="container-login100">
+			<div class="wrap-login100 p-t-50 p-b-90">
+                {% if status == "True" %}
+                    <div>
+                        <span class="login100-form-title p-b-51">
+                            Descriptive Statistics Successfully Created
+                        </span>
+                    </div>
+                    <div style="text-align:center">
+                        <p><b>Data location</b></p>
+                        <p>{{ dataPath }}</p>
+                    </div>
+                {% else %}
+                    <div>
+                        <span class="login100-form-title p-b-51">
+                            Error in calculation
+                        </span>
+                    </div>
+                    <div style="text-align:center">
+                        <p><b>Reason</b></p>
+                        <p>{{ message }}</p>
+                    </div>
+                {% endif %}
+			</div>
+            <div class="login100-form-title p-b-51">
+                <p>This page will automatically close in <span id="countdown"></span> seconds...</p>                
+            </div>
+		</div>
+	</div>
+	<footer><p style="text-align:center;">Template courtesy: colorlib</p></footer>
+    <script src="{{ url_for('static', filename='vendor/jquery/jquery-3.2.1.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='vendor/bootstrap/js/popper.js')}}"></script>
+    <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='vendor/select2/select2.min.js')}}"></script>
+	<script src="{{ url_for('static', filename='js/main.js')}}"></script>
+</body>
+</html>

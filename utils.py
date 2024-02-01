@@ -143,6 +143,23 @@ def fetch_data(input_file_path, date_col, value_col):
         }
 
 
+def fetch_raw_data(input_file_path):
+    try:
+        if input_file_path.endswith(".csv"):
+            df = pd.read_csv(input_file_path)
+        elif input_file_path.endswith(".xlsx"):
+            df = pd.read_excel(input_file_path)
+        else:
+            return {
+                "message": "Invalid file format (Valid format: `.csv` and `.xlsx`)."
+            }
+        return df
+    except:
+        return {
+            "message": "The file does not exist"
+        }
+
+
 def calculate_forecast_data(
     data_df, 
     forecast_length, 
