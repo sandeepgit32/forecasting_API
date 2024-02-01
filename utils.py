@@ -4,7 +4,6 @@ import pandas as pd
 import statsmodels.api as sm
 from dotenv import load_dotenv
 load_dotenv(".env", verbose=True)
-forecastDataPath = os.environ.get("FORECAST_DATA_PATH")
 CONFIDENCE_LEVEL = float(os.environ.get("CONFIDENCE_LEVEL"))
 
 
@@ -162,4 +161,4 @@ def calculate_forecast_data(
     forecast = pd.concat([forecast_ci, mean_forecast], axis=1)
     print(forecast)
     forecast[date_col] = forecast.index
-    forecast.to_csv(forecastDataPath, index=False)
+    return forecast

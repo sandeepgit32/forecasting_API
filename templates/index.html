@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block content %}
+	<div class="limiter">
+		<div class="container-login100">
+			<div class="wrap-login100 p-t-50 p-b-90">
+                {% if logged_in == "True" %}
+                    <div>
+                        <span class="login100-form-title p-b-51">
+                            Weicome {{ welcome_name }}.
+                        </span>
+                    </div>
+                    <div>
+                        <span class="login100-form-title p-b-51">
+                            You are logged in.
+                        </span>
+                    </div>
+                {% else %}
+                    <span class="login100-form-title p-b-51">
+                        User is logged out.
+                    </span>
+                {% endif %}
+			</div>
+            <div class="login100-form-title p-b-51">
+                <a href="{{ url_for('logout')}}">
+                    <h4>Logout</h4>
+                </a>                
+            </div>
+		</div>
+	</div>
+{% endblock %}
