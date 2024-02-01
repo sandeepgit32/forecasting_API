@@ -1,6 +1,7 @@
 import os, utils, db
+from functools import wraps
 from flask_bcrypt import Bcrypt
-from flask import Flask, jsonify, request, render_template, redirect, url_for, session
+from flask import Flask, jsonify, request, render_template, redirect, url_for, session, send_from_directory
 from dotenv import load_dotenv
 from flask_bcrypt import Bcrypt
 load_dotenv(".env", verbose=True)
@@ -9,6 +10,28 @@ load_dotenv(".env", verbose=True)
 app = Flask(__name__)
 app.secret_key = os.environ.get('APP_SECRET_KEY')
 bcrypt_obj = Bcrypt(app)
+
+
+def authentication_required(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs): 
+        if session.get('logged_in'):
+            return func(*args, **kwargs)
+        else:
+            return render_template('login.html')
+    return wrapper
+
+
+@app.route('/favicon.ico')
+def favicon():
+    '''
+    Get the fabicon file without using html
+    '''
+    return send_from_directory(
+        os.path.join(app.root_path, 'static'), 
+        'images/icons/favicon.ico', \
+        mimetype='image/vnd.microsoft.icon'
+    )
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -30,6 +53,7 @@ def register():
                 request.form['surname'],
                 hashPassword
             )
+            session['registration_message'] = "User created successfully! Please log in."
             return redirect(url_for('login'))
         else:
             return render_template('register.html', message="User Already Exists!")
@@ -40,7 +64,12 @@ def login():
     if request.method == 'GET':
         if session.get('logged_in'):
             return redirect(url_for('index'))
-        return render_template('login.html')
+        if session.get('registration_message'):
+            message = session.get('registration_message')
+            session['registration_message'] = None
+            return render_template('login.html', message=message)
+        else:
+            return render_template('login.html')
     else:
         u = request.form['username']
         p = request.form['password']
@@ -70,17 +99,16 @@ def logout():
 
 
 @app.route('/', methods=['GET'])
+@authentication_required
 def index():
-    if session.get('logged_in'):
-        return render_template('index.html', 
-            welcome_name=f'{session["name"]} {session["surname"]}',
-            logged_in="True"
-        )
-    else:
-        return redirect(url_for('login'))
+    return render_template('index.html', 
+        welcome_name=f'{session["name"]} {session["surname"]}',
+        logged_in="True"
+    )
 
 
 @app.route("/forecast", methods=["GET"])
+@authentication_required
 def forecast():
     """
     Endpoint for performing forecasting.

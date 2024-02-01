@@ -6,17 +6,18 @@
                 {% if logged_in == "True" %}
                     <div>
                         <span class="login100-form-title p-b-51">
-                            Weicome {{ welcome_name }}.
+                            Welcome!
                         </span>
                     </div>
                     <div>
                         <span class="login100-form-title p-b-51">
-                            You are logged in.
+                            <h5>{{ welcome_name }},</h5>
+                            <h6>You have successfully logged in.</h6>
                         </span>
                     </div>
                 {% else %}
                     <span class="login100-form-title p-b-51">
-                        User is logged out.
+                        User is logged out
                     </span>
                 {% endif %}
 			</div>
