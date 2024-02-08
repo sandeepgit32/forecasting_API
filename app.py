@@ -201,7 +201,8 @@ def statistics():
                     "statistics.html", status="False", message=data_df["message"]
                 )
             describe_df = data_df.describe(include='all')
-            describe_df.to_csv(statisticsDataPath)
+            describe_df.insert(0, 'Statistics', describe_df.index)
+            describe_df.to_csv(statisticsDataPath, index=False)
             return render_template(
                 "statistics.html", status="True", dataPath=statisticsDataPath
             )

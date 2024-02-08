@@ -15,6 +15,12 @@
                             <h6>You have successfully logged in.</h6>
                         </span>
                     </div>
+                    <br>
+                    <div class="login100-form-title p-b-51">
+                        <a href="https://app.powerbi.com/groups/me/reports/52f0a492-d15d-4711-89a3-75d5ab0a5fd0/ReportSection?experience=power-bi" target="_blank">
+                            <h4><i class="fa fa-bar-chart" aria-hidden="true"></i> Power BI</h4>
+                        </a>                
+                    </div>
                 {% else %}
                     <span class="login100-form-title p-b-51">
                         User is logged out
@@ -23,7 +29,7 @@
 			</div>
             <div class="login100-form-title p-b-51">
                 <a href="{{ url_for('logout')}}">
-                    <h4>Logout</h4>
+                    <h4><i class="fa fa-sign-out" aria-hidden="true"></i> Logout</h4>
                 </a>                
             </div>
 		</div>
