@@ -108,7 +108,6 @@ def index():
 
 
 @app.route("/forecast", methods=["GET"])
-@authentication_required
 def forecast():
     """
     Endpoint for performing forecasting.
@@ -132,6 +131,13 @@ def forecast():
     if request.method == "GET":
         try:
             input_file_path = os.environ.get("INPUT_DATA_PATH")
+        except:
+            return render_template(
+                "forecast.html", 
+                status="False", 
+                message="Environment variable in the server not set"
+            )
+        try:
             forecast_length = int(request.args.get("forecastLength"))
             date_col = request.args.get("dateCol")
             value_col = request.args.get("valueCol")
@@ -189,11 +195,17 @@ def forecast():
 
 
 @app.route("/statistics", methods=["GET"])
-@authentication_required
 def statistics():
     if request.method == "GET":
         try:
             input_file_path = os.environ.get("INPUT_DATA_PATH")
+        except:
+            return render_template(
+                "statistics.html", 
+                status="False", 
+                message="Environment variable in the server not set"
+            )
+        try:
             statisticsDataPath = os.environ.get("STATISTICS_DATA_PATH")
             data_df = utils.fetch_raw_data(input_file_path)
             if type(data_df) is dict:
@@ -209,6 +221,175 @@ def statistics():
         except:
             return render_template(
                 "statistics.html", status="False", message="Internal server error"
+            )
+
+
+@app.route("/missing_value_identification", methods=["GET"])
+def missing_value_identification():
+    if request.method == "GET":
+        try:
+            input_file_path = os.environ.get("INPUT_DATA_PATH")
+        except:
+            return render_template(
+                "missing_value_count.html", 
+                status="False", 
+                message="Environment variable in the server not set"
+            )
+        try:
+            data_df = utils.fetch_raw_data(input_file_path)
+            date_col = request.args.get("dateCol")
+            value_col = request.args.get("valueCol")
+        except:
+            return render_template(
+                "missing_value_count.html", status="False", message="Invalid URL"
+            )
+        if (
+            (input_file_path is None)
+            or (date_col is None)
+            or (value_col is None)
+        ):
+            return render_template(
+                "missing_value_count.html", status="False", message="Invalid URL"
+            )
+        try:
+            data_df = utils.fetch_data(input_file_path, date_col, value_col)
+            if type(data_df) is dict:
+                return render_template(
+                    "missing_value_count.html", status="False", message=data_df["message"]
+                )
+            missing_value_count = data_df.isnull().sum()
+            return render_template(
+                "missing_value_count.html",
+                status="True",
+                missing_value_count=missing_value_count[value_col],
+            )
+        except:
+            return render_template(
+                "missing_value_count.html",
+                status="False",
+                message="Some error is happening in the server.",
+            )
+
+
+@app.route("/missing_value_imputation", methods=["GET"])
+def missing_value_imputation():
+    if request.method == "GET":
+        try:
+            IMPUTED_DATA_PATH = os.environ.get("IMPUTED_DATA_PATH")
+            input_file_path = os.environ.get("INPUT_DATA_PATH")
+        except:
+            return render_template(
+                "missing_value_imputation.html", 
+                status="False", 
+                message="Environment variable in the server not set"
+            )
+        try:
+            data_df = utils.fetch_raw_data(input_file_path)
+            value_col = request.args.get("valueCol")
+        except:
+            return render_template(
+                "missing_value_imputation.html", status="False", message="Invalid URL"
+            )
+        if (
+            (input_file_path is None)
+            or (value_col is None)
+        ):
+            return render_template(
+                "missing_value_imputation.html", status="False", message="Invalid URL"
+            )
+        try:
+            data_df = utils.fetch_raw_data(input_file_path)
+            if type(data_df) is dict:
+                return render_template(
+                    "missing_value_imputation.html", 
+                    status="False", 
+                    message=data_df["message"]
+                )
+            if value_col not in data_df.columns:
+                return render_template(
+                    "missing_value_imputation.html", 
+                    status="False", 
+                    message='The specified column does not exist in the file.'
+                )
+            data_df.loc[
+                data_df.loc[:, value_col].isnull(), value_col
+            ] = data_df.loc[:, value_col].mean()
+            data_df.to_csv(IMPUTED_DATA_PATH, index=False)
+
+            return render_template(
+                "missing_value_imputation.html",
+                status="True",
+                dataPath=IMPUTED_DATA_PATH
+            )
+        except:
+            return render_template(
+                "missing_value_imputation.html",
+                status="False",
+                message="Some error is happening in the server.",
+            )
+
+
+@app.route("/outlier_detection", methods=["GET"])
+def outlier_detection():
+    if request.method == "GET":
+        try:
+            OUTLIER_DATA_PATH = os.environ.get("OUTLIER_DATA_PATH")
+            DATA_WITHOUT_OUTLIER_DATA_PATH = os.environ.get("DATA_WITHOUT_OUTLIER_DATA_PATH")
+            input_file_path = os.environ.get("INPUT_DATA_PATH")
+        except:
+            return render_template(
+                "outlier_detection.html", 
+                status="False", 
+                message="Environment variable in the server not set"
+            )
+        try:
+            data_df = utils.fetch_raw_data(input_file_path)
+            value_col = request.args.get("valueCol")
+        except:
+            return render_template(
+                "outlier_detection.html", status="False", message="Invalid URL"
+            )
+        if (
+            (input_file_path is None)
+            or (value_col is None)
+        ):
+            return render_template(
+                "outlier_detection.html", status="False", message="Invalid URL"
+            )
+        try:
+            data_df = utils.fetch_raw_data(input_file_path)
+            if type(data_df) is dict:
+                return render_template(
+                    "outlier_detection.html", 
+                    status="False", 
+                    message=data_df["message"]
+                )
+            if value_col not in data_df.columns:
+                return render_template(
+                    "outlier_detection.html", 
+                    status="False", 
+                    message='The specified column does not exist in the file.'
+                )
+            Q1 = data_df[value_col].quantile(0.25)
+            Q3 = data_df[value_col].quantile(0.75)
+            IQR = Q3 - Q1
+            Lower_Whisker = Q1 - 1.5*IQR
+            Upper_Whisker = Q3 + 1.5*IQR
+            outlier_data_df = data_df[data_df[value_col] >= Upper_Whisker]
+            data_without_outlier_df = data_df[data_df[value_col] < Upper_Whisker]
+            outlier_data_df.to_csv(OUTLIER_DATA_PATH, index=False)
+            data_without_outlier_df.to_csv(DATA_WITHOUT_OUTLIER_DATA_PATH, index=False)
+            return render_template(
+                "outlier_detection.html",
+                status="True",
+                outlierDataPath=OUTLIER_DATA_PATH,
+                dataWithoutOutlierPath=DATA_WITHOUT_OUTLIER_DATA_PATH,
+            )
+        except:
+            return render_template(
+                "outlier_detection.html",
+                status="False",
+                message="Some error is happening in the server.",
             )
 
 

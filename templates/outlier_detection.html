@@ -40,17 +40,21 @@
                 {% if status == "True" %}
                     <div>
                         <span class="login100-form-title p-b-51">
-                            Forcasting Successful
+                            Outlier detection done
                         </span>
-                    </div>
-                    <div style="text-align:center">
-                        <p><b>Forecast data location</b></p>
-                        <p>{{ dataPath }}</p>
+                        <div style="text-align:center">
+                            <p><b>Outlier data</b></p>
+                            <p>{{ outlierDataPath }}</p>
+                        </div>
+                        <div style="text-align:center">
+                            <p><b>Data without outlier</b></p>
+                            <p>{{ dataWithoutOutlierPath }}</p>
+                        </div>
                     </div>
                 {% else %}
                     <div>
                         <span class="login100-form-title p-b-51">
-                            Error in forecasting
+                            Error in outlier detection
                         </span>
                     </div>
                     <div style="text-align:center">

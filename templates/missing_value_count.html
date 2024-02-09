@@ -40,17 +40,13 @@
                 {% if status == "True" %}
                     <div>
                         <span class="login100-form-title p-b-51">
-                            Forcasting Successful
+                            Missing value count = {{ missing_value_count }}
                         </span>
-                    </div>
-                    <div style="text-align:center">
-                        <p><b>Forecast data location</b></p>
-                        <p>{{ dataPath }}</p>
                     </div>
                 {% else %}
                     <div>
                         <span class="login100-form-title p-b-51">
-                            Error in forecasting
+                            Error in calculation missing values
                         </span>
                     </div>
                     <div style="text-align:center">

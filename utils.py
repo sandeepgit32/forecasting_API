@@ -139,7 +139,7 @@ def fetch_data(input_file_path, date_col, value_col):
         return df
     except:
         return {
-            "message": "The specified column(s) do not exist in the file."
+            "message": "The specified column(s) does not exist in the file."
         }
 
 

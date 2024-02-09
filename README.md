@@ -57,3 +57,17 @@ A simple API to get the future forecast for time series data using Flask.
         "status": "False"
     }
   ```
+  - HTTP call for **Missing value identification**
+  ```
+    http://127.0.0.1:5000/missing_value_identification?dateCol=Order%20Date&valueCol=Sales
+  ```
+
+  - HTTP call for **Missing data imputation**
+  ```
+    http://127.0.0.1:5000/missing_value_imputation?valueCol=Sales
+  ```
+
+  - HTTP call for **Outlier detection**
+  ```
+    http://127.0.0.1:5000/outlier_detection?dateCol=Order%20Date&valueCol=Sales
+  ```
