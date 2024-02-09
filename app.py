@@ -130,7 +130,7 @@ def forecast():
     """
     if request.method == "GET":
         try:
-            input_file_path = os.environ.get("INPUT_DATA_PATH")
+            DATA_WITHOUT_OUTLIER_PATH = os.environ.get("DATA_WITHOUT_OUTLIER_DATA_PATH")
         except:
             return render_template(
                 "forecast.html", 
@@ -148,7 +148,7 @@ def forecast():
                 "forecast.html", status="False", message="Invalid URL"
             )
         if (
-            (input_file_path is None)
+            (DATA_WITHOUT_OUTLIER_PATH is None)
             or (forecast_length is None)
             or (date_col is None)
             or (value_col is None)
@@ -169,7 +169,7 @@ def forecast():
         elif forecast_type == "weekly":
             forecastDataPath = os.environ.get("FORECAST_DATA_PATH_WEEKLY")
         try:
-            data_df = utils.fetch_data(input_file_path, date_col, value_col)
+            data_df = utils.fetch_data(DATA_WITHOUT_OUTLIER_PATH, date_col, value_col)
             if type(data_df) is dict:
                 return render_template(
                     "forecast.html", status="False", message=data_df["message"]
@@ -236,7 +236,6 @@ def missing_value_identification():
                 message="Environment variable in the server not set"
             )
         try:
-            data_df = utils.fetch_raw_data(input_file_path)
             date_col = request.args.get("dateCol")
             value_col = request.args.get("valueCol")
         except:
@@ -284,7 +283,6 @@ def missing_value_imputation():
                 message="Environment variable in the server not set"
             )
         try:
-            data_df = utils.fetch_raw_data(input_file_path)
             value_col = request.args.get("valueCol")
         except:
             return render_template(
@@ -333,9 +331,9 @@ def missing_value_imputation():
 def outlier_detection():
     if request.method == "GET":
         try:
+            IMPUTED_DATA_PATH = os.environ.get("IMPUTED_DATA_PATH")
             OUTLIER_DATA_PATH = os.environ.get("OUTLIER_DATA_PATH")
             DATA_WITHOUT_OUTLIER_DATA_PATH = os.environ.get("DATA_WITHOUT_OUTLIER_DATA_PATH")
-            input_file_path = os.environ.get("INPUT_DATA_PATH")
         except:
             return render_template(
                 "outlier_detection.html", 
@@ -343,21 +341,20 @@ def outlier_detection():
                 message="Environment variable in the server not set"
             )
         try:
-            data_df = utils.fetch_raw_data(input_file_path)
             value_col = request.args.get("valueCol")
         except:
             return render_template(
                 "outlier_detection.html", status="False", message="Invalid URL"
             )
         if (
-            (input_file_path is None)
+            (IMPUTED_DATA_PATH is None)
             or (value_col is None)
         ):
             return render_template(
                 "outlier_detection.html", status="False", message="Invalid URL"
             )
         try:
-            data_df = utils.fetch_raw_data(input_file_path)
+            data_df = utils.fetch_raw_data(IMPUTED_DATA_PATH)
             if type(data_df) is dict:
                 return render_template(
                     "outlier_detection.html", 
