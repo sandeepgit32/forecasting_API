@@ -144,6 +144,7 @@ def fetch_data(file_path, date_col, value_col):
 
 
 def fetch_data_with_product_filter(
+    file_path,
     date_col, 
     value_col,
     product_family_col,
@@ -166,8 +167,9 @@ def fetch_data_with_product_filter(
         }
     try:
         df = df[[date_col, value_col, product_family_col, product_name_col]]
-        df[date_col] = pd.to_datetime(df[date_col])
         if product_family == "All":
+            df = df[[date_col, value_col]]
+            df[date_col] = pd.to_datetime(df[date_col])
             return df
         else:
             if product_name == "All":
@@ -175,7 +177,9 @@ def fetch_data_with_product_filter(
             else:
                 df = df[(df[product_family_col] == product_family) \
                     & (df[product_name_col] == product_name)]
-        return df
+            df = df[[date_col, value_col]]
+            df[date_col] = pd.to_datetime(df[date_col])
+            return df
     except:
         return {
             "message": "The specified column(s) does not exist in the file."

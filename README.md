@@ -37,11 +37,11 @@ A simple API to get the future forecast for time series data using Flask.
 
   - Request: Send the HTTP GET request on the following endpoint format:
   ```
-    http://127.0.0.1:5000/forecast?forecastLength=<Integer>&dateCol=<date_column>&valueCol=<value_column>&forecastType=<monthly/weekly>&periodOfSeasonality=<Integer>
+    http://127.0.0.1:5000/forecast?forecastLength=<Integer>&dateCol=<date_column>&valueCol=<value_column>&forecastType=<monthly/weekly>&periodOfSeasonality=<Integer>&productFamilyCol=<product_family_column>&productNameCol=<product_name_column>&productFamily=<product_family>&productName=<product_name>
   ```
   For example:
   ```
-    http://127.0.0.1:5000/forecast?forecastLength=6&dateCol=Order%20Date&valueCol=Sales&forecastType=monthly&periodOfSeasonality=12
+    http://127.0.0.1:5000/forecast?forecastLength=6&dateCol=Order%20Date&valueCol=Sales&forecastType=monthly&periodOfSeasonality=12&productFamilyCol=Category&productNameCol=Product%20Name&productFamily=Office%20Supplies&productName=All
   ```
   - Success response: If the forecast is successful, the API will return a response in the following format:
   ```
