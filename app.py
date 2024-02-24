@@ -141,6 +141,10 @@ def forecast():
             forecast_length = int(request.args.get("forecastLength"))
             date_col = request.args.get("dateCol")
             value_col = request.args.get("valueCol")
+            product_family_col = request.args.get("productFamilyCol")
+            product_name_col = request.args.get("productNameCol")
+            product_family = request.args.get("productFamily")
+            product_name = request.args.get("productName")
             forecast_type = request.args.get("forecastType")
             period_of_seasonality = int(request.args.get("periodOfSeasonality"))
         except:
@@ -165,11 +169,25 @@ def forecast():
                 message="Invalid forecast type (valid type: monthly/weekly)",
             )
         if forecast_type == "monthly":
-            forecastDataPath = os.environ.get("FORECAST_DATA_PATH_MONTHLY")
+            if product_name == "All":
+                forecastDataPath = os.environ.get("FORECAST_DATA_PATH_MONTHLY_FAMILY")
+            else:
+                forecastDataPath = os.environ.get("FORECAST_DATA_PATH_MONTHLY_PRODUCT")
         elif forecast_type == "weekly":
-            forecastDataPath = os.environ.get("FORECAST_DATA_PATH_WEEKLY")
+            if product_name == "All":
+                forecastDataPath = os.environ.get("FORECAST_DATA_PATH_WEEKLY_FAMILY")
+            else:
+                forecastDataPath = os.environ.get("FORECAST_DATA_PATH_WEEKLY_PRODUCT")
         try:
-            data_df = utils.fetch_data(DATA_WITHOUT_OUTLIER_PATH, date_col, value_col)
+            data_df = utils.fetch_data_with_product_filter(
+                DATA_WITHOUT_OUTLIER_PATH, 
+                date_col, 
+                value_col,
+                product_family_col,
+                product_name_col,
+                product_family,
+                product_name
+            )
             if type(data_df) is dict:
                 return render_template(
                     "forecast.html", status="False", message=data_df["message"]
@@ -251,7 +269,7 @@ def missing_value_identification():
                 "missing_value_count.html", status="False", message="Invalid URL"
             )
         try:
-            data_df = utils.fetch_data(input_file_path, date_col, value_col)
+            data_df = utils._with_product_filter(input_file_path, date_col, value_col)
             if type(data_df) is dict:
                 return render_template(
                     "missing_value_count.html", status="False", message=data_df["message"]

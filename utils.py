@@ -119,12 +119,12 @@ def get_optimal_parameters_for_sarimax(
     return pqd_dict[optimal_key], seasonal_pqd_dict[optimal_key]
 
 
-def fetch_data(input_file_path, date_col, value_col):
+def fetch_data(file_path, date_col, value_col):
     try:
-        if input_file_path.endswith(".csv"):
-            df = pd.read_csv(input_file_path)
-        elif input_file_path.endswith(".xlsx"):
-            df = pd.read_excel(input_file_path)
+        if file_path.endswith(".csv"):
+            df = pd.read_csv(file_path)
+        elif file_path.endswith(".xlsx"):
+            df = pd.read_excel(file_path)
         else:
             return {
                 "message": "Invalid file format (Valid format: `.csv` and `.xlsx`)."
@@ -143,12 +143,51 @@ def fetch_data(input_file_path, date_col, value_col):
         }
 
 
-def fetch_raw_data(input_file_path):
+def fetch_data_with_product_filter(
+    date_col, 
+    value_col,
+    product_family_col,
+    product_name_col,
+    product_family,
+    product_name
+    ):
     try:
-        if input_file_path.endswith(".csv"):
-            df = pd.read_csv(input_file_path)
-        elif input_file_path.endswith(".xlsx"):
-            df = pd.read_excel(input_file_path)
+        if file_path.endswith(".csv"):
+            df = pd.read_csv(file_path)
+        elif file_path.endswith(".xlsx"):
+            df = pd.read_excel(file_path)
+        else:
+            return {
+                "message": "Invalid file format (Valid format: `.csv` and `.xlsx`)."
+            }
+    except:
+        return {
+            "message": "The file does not exist"
+        }
+    try:
+        df = df[[date_col, value_col, product_family_col, product_name_col]]
+        df[date_col] = pd.to_datetime(df[date_col])
+        if product_family == "All":
+            return df
+        else:
+            if product_name == "All":
+                df = df[df[product_family_col] == product_family]
+            else:
+                df = df[(df[product_family_col] == product_family) \
+                    & (df[product_name_col] == product_name)]
+        return df
+    except:
+        return {
+            "message": "The specified column(s) does not exist in the file."
+        }
+
+
+def fetch_raw_data(file_path):
+    try:
+        if file_path.endswith(".csv"):
+            df = pd.read_csv(file_path)
+        elif file_path.endswith(".xlsx"):
+            df = pd.read_excel(file_path)
         else:
             return {
                 "message": "Invalid file format (Valid format: `.csv` and `.xlsx`)."
