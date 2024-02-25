@@ -182,7 +182,7 @@ def forecast():
                 forecastDataPath = os.environ.get("FORECAST_DATA_PATH_WEEKLY_FAMILY")
             else:
                 forecastDataPath = os.environ.get("FORECAST_DATA_PATH_WEEKLY_PRODUCT")
-        if True:
+        try:
             data_df = utils.fetch_data_with_product_filter(
                 DATA_WITHOUT_OUTLIER_PATH, 
                 date_col, 
@@ -208,7 +208,7 @@ def forecast():
             return render_template(
                 "forecast.html", status="True", dataPath=forecastDataPath
             )
-        else:
+        except:
             return render_template(
                 "forecast.html",
                 status="False",
