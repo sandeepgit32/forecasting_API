@@ -273,7 +273,7 @@ def missing_value_identification():
                 "missing_value_count.html", status="False", message="Invalid URL"
             )
         try:
-            data_df = utils._with_product_filter(input_file_path, date_col, value_col)
+            data_df = utils.fetch_data(input_file_path, date_col, value_col)
             if type(data_df) is dict:
                 return render_template(
                     "missing_value_count.html", status="False", message=data_df["message"]
