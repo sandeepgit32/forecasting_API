@@ -2,9 +2,17 @@ import os
 import itertools
 import pandas as pd
 import statsmodels.api as sm
-from dotenv import load_dotenv
-load_dotenv(".env", verbose=True)
-CONFIDENCE_LEVEL = float(os.environ.get("CONFIDENCE_LEVEL"))
+CONFIDENCE_LEVEL = 90
+
+INPUT_DATA_PATH = "files/Superstore.xlsx"
+ALL_FORECAST_RESULT_PATH = "files/all_forecast_result.csv"
+DATE_COL = "Order Date"
+VALUE_COL = "Sales"
+PRODUCT_FAMILY_COLUMN = "Category"
+PRODUCT_NAME_COLUMN = "Product Name"
+PERIOD_OF_SEASONALITY = 12
+FORECAST_TYPE = "monthly"
+FORECAST_LENGTH = 6
 
 
 def process_data(value_df, date_col, value_col, forecast_type):
@@ -119,7 +127,7 @@ def get_optimal_parameters_for_sarimax(
     return pqd_dict[optimal_key], seasonal_pqd_dict[optimal_key]
 
 
-def fetch_data(file_path, date_col, value_col):
+def fetch_data(file_path, date_col, value_col, product_family, product_name):
     try:
         if file_path.endswith(".csv"):
             df = pd.read_csv(file_path)
@@ -134,7 +142,7 @@ def fetch_data(file_path, date_col, value_col):
             "message": "The file does not exist"
         }
     try:
-        df = df[[date_col, value_col]]
+        df = df[[date_col, value_col, product_family, product_name]]
         df[date_col] = pd.to_datetime(df[date_col])
         return df
     except:
@@ -143,64 +151,29 @@ def fetch_data(file_path, date_col, value_col):
         }
 
 
-def fetch_data_with_product_filter(
-    file_path,
-    date_col, 
-    value_col,
+def filter_data_with_product_filter(
+    df,
     product_family_col,
     product_name_col,
     product_family,
     product_name
-    ):
-    try:
-        if file_path.endswith(".csv"):
-            df = pd.read_csv(file_path)
-        elif file_path.endswith(".xlsx"):
-            df = pd.read_excel(file_path)
-        else:
-            return {
-                "message": "Invalid file format (Valid format: `.csv` and `.xlsx`)."
-            }
-    except:
-        return {
-            "message": "The file does not exist"
-        }
-    try:
-        df = df[[date_col, value_col, product_family_col, product_name_col]]
-        if product_family == "All":
-            df = df[[date_col, value_col]]
-            df[date_col] = pd.to_datetime(df[date_col])
-            return df
-        else:
-            if product_name == "All":
-                df = df[df[product_family_col] == product_family]
-            else:
-                df = df[(df[product_family_col] == product_family) \
-                    & (df[product_name_col] == product_name)]
-            df = df[[date_col, value_col]]
-            df[date_col] = pd.to_datetime(df[date_col])
-            return df
-    except:
-        return {
-            "message": "The specified column(s) does not exist in the file."
-        }
-
-
-def fetch_raw_data(file_path):
-    try:
-        if file_path.endswith(".csv"):
-            df = pd.read_csv(file_path)
-        elif file_path.endswith(".xlsx"):
-            df = pd.read_excel(file_path)
-        else:
-            return {
-                "message": "Invalid file format (Valid format: `.csv` and `.xlsx`)."
-            }
+):
+    df = df[[date_col, value_col, product_family_col, product_name_col]]
+    if product_family == "All":
+        if product_name != "All":
+            df = df[df[product_name_col] == product_name]
+        df = df[[date_col, value_col]]
+        df[date_col] = pd.to_datetime(df[date_col])
         return df
-    except:
-        return {
-            "message": "The file does not exist"
-        }
+    else:
+        if product_name == "All":
+            df = df[df[product_family_col] == product_family]
+        else:
+            df = df[(df[product_family_col] == product_family) \
+                & (df[product_name_col] == product_name)]
+        df = df[[date_col, value_col]]
+        df[date_col] = pd.to_datetime(df[date_col])
+        return df
 
 
 def calculate_forecast_data(
@@ -221,4 +194,32 @@ def calculate_forecast_data(
     forecast = pd.concat([forecast_ci, mean_forecast], axis=1)
     print(forecast)
     forecast[date_col] = forecast.index
-    return forecast, processed_value_df
+    return forecast
+
+
+def main():
+    invoice_df = fetch_data(
+        INPUT_DATA_PATH, 
+        DATE_COL, 
+        VALUE_COL,
+        PRODUCT_FAMILY_COLUMN,
+        PRODUCT_NAME_COLUMN
+    )
+    product_family_list = invoice_df[PRODUCT_FAMILY_COLUMN].unique().tolist()
+    product_name_list = invoice_df[PRODUCT_NAME_COLUMN].unique().tolist()
+    filtered_df = filter_data_with_product_filter(
+        invoice_df,
+        PRODUCT_FAMILY_COLUMN,
+        PRODUCT_NAME_COLUMN,
+        product_family,
+        product_name
+    )
+    forecast = calculate_forecast_data(
+        data_df,
+        FORECAST_LENGTH,
+        DATE_COL,
+        VALUE_COL,
+        FORECAST_TYPE,
+        PERIOD_OF_SEASONALITY,
+    )
+    forecast.to_csv(ALL_FORECAST_RESULT_PATH, index=False)

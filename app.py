@@ -177,11 +177,13 @@ def forecast():
                 forecastDataPath = os.environ.get("FORECAST_DATA_PATH_MONTHLY_FAMILY")
             else:
                 forecastDataPath = os.environ.get("FORECAST_DATA_PATH_MONTHLY_PRODUCT")
+            historical_data = os.environ.get("HISTORICAL_DATA_PATH_MONTHLY")
         elif forecast_type == "weekly":
             if product_name == "All":
                 forecastDataPath = os.environ.get("FORECAST_DATA_PATH_WEEKLY_FAMILY")
             else:
                 forecastDataPath = os.environ.get("FORECAST_DATA_PATH_WEEKLY_PRODUCT")
+            historical_data = os.environ.get("HISTORICAL_DATA_PATH_WEEKLY")
         try:
             data_df = utils.fetch_data_with_product_filter(
                 DATA_WITHOUT_OUTLIER_PATH, 
@@ -205,6 +207,7 @@ def forecast():
                 period_of_seasonality,
             )
             forecast.to_csv(forecastDataPath, index=False)
+            historical_data.to_csv(historicalDataPath)
             return render_template(
                 "forecast.html", status="True", dataPath=forecastDataPath
             )
