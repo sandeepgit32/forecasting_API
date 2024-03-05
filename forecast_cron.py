@@ -2,17 +2,17 @@ import os
 import itertools
 import pandas as pd
 import statsmodels.api as sm
-CONFIDENCE_LEVEL = 90
 
-INPUT_DATA_PATH = "files/Superstore.xlsx"
-ALL_FORECAST_RESULT_PATH = "files/all_forecast_result.csv"
-DATE_COL = "Order Date"
-VALUE_COL = "Sales"
-PRODUCT_FAMILY_COLUMN = "Category"
-PRODUCT_NAME_COLUMN = "Product Name"
-PERIOD_OF_SEASONALITY = 12
-FORECAST_TYPE = "monthly"
-FORECAST_LENGTH = 6
+INPUT_DATA_PATH = "files/Superstore.xlsx"  # Provide the input file path here
+ALL_FORECAST_RESULT_PATH = "files/all_forecast_result_monthly.csv" # Provide the monthly/weekly forcast result file path here
+DATE_COL = "Order Date" # Provide the "date" column name here
+VALUE_COL = "Sales" # Provide the "value" column name here
+PRODUCT_FAMILY_COLUMN = "Category" # Provide the "product family" column name here
+PRODUCT_NAME_COLUMN = "Product Name" # Provide the "product name" column name here
+PERIOD_OF_SEASONALITY = 12 # Provide the period of seasonality here
+FORECAST_TYPE = "weekly" # Provide the forecast type here ("monthly" or "weekly")
+FORECAST_LENGTH = 6 # Provide the forecast length here
+CONFIDENCE_LEVEL = 90
 
 
 def process_data(value_df, date_col, value_col, forecast_type):
@@ -151,14 +151,15 @@ def fetch_data(file_path, date_col, value_col, product_family, product_name):
         }
 
 
-def filter_data_with_product_filter(
-    df,
+def filter_data_for_product_family_and_product_name(
+    df, 
+    date_col, 
+    value_col,
     product_family_col,
     product_name_col,
     product_family,
     product_name
 ):
-    df = df[[date_col, value_col, product_family_col, product_name_col]]
     if product_family == "All":
         if product_name != "All":
             df = df[df[product_name_col] == product_name]
@@ -190,9 +191,7 @@ def calculate_forecast_data(
     forecast_ci, mean_forecast = get_forecast_using_sarimax_model(
         processed_value_df, forecast_length, value_col, period_of_seasonality
     )
-    print('-------->', forecast_ci, mean_forecast)
     forecast = pd.concat([forecast_ci, mean_forecast], axis=1)
-    print(forecast)
     forecast[date_col] = forecast.index
     return forecast
 
@@ -207,19 +206,38 @@ def main():
     )
     product_family_list = invoice_df[PRODUCT_FAMILY_COLUMN].unique().tolist()
     product_name_list = invoice_df[PRODUCT_NAME_COLUMN].unique().tolist()
-    filtered_df = filter_data_with_product_filter(
-        invoice_df,
-        PRODUCT_FAMILY_COLUMN,
-        PRODUCT_NAME_COLUMN,
-        product_family,
-        product_name
-    )
-    forecast = calculate_forecast_data(
-        data_df,
-        FORECAST_LENGTH,
-        DATE_COL,
-        VALUE_COL,
-        FORECAST_TYPE,
-        PERIOD_OF_SEASONALITY,
-    )
-    forecast.to_csv(ALL_FORECAST_RESULT_PATH, index=False)
+    product_family_list.append("All")
+    product_name_list.append("All")
+    for product_family in product_family_list:
+        for product_name in product_name_list:
+            print(f"Processing forecast for {product_family} - {product_name}")
+            data_df = filter_data_for_product_family_and_product_name(
+                invoice_df,
+                DATE_COL,
+                VALUE_COL,
+                PRODUCT_FAMILY_COLUMN,
+                PRODUCT_NAME_COLUMN,
+                product_family,
+                product_name
+            )
+            if data_df.empty:
+                continue
+            forecast_df = calculate_forecast_data(
+                data_df,
+                FORECAST_LENGTH,
+                DATE_COL,
+                VALUE_COL,
+                FORECAST_TYPE,
+                PERIOD_OF_SEASONALITY,
+            )
+            forecast_df["Product Family"] = product_family
+            forecast_df["Product Name"] = product_name
+            forecast_df.to_csv(
+                ALL_FORECAST_RESULT_PATH, 
+                index=False,
+                mode='a', 
+                header = not os.path.exists(ALL_FORECAST_RESULT_PATH))
+
+
+if __name__ == "__main__":
+    main()
