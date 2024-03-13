@@ -192,6 +192,7 @@ def calculate_forecast_data(
         processed_value_df, forecast_length, value_col, period_of_seasonality
     )
     forecast = pd.concat([forecast_ci, mean_forecast], axis=1)
+    forecast[forecast < 0] = 0
     forecast[date_col] = forecast.index
     return forecast
 

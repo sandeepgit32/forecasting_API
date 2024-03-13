@@ -219,6 +219,8 @@ def calculate_forecast_data(
     )
     print('-------->', forecast_ci, mean_forecast)
     forecast = pd.concat([forecast_ci, mean_forecast], axis=1)
+    # eliminate the negative values from the forecast
+    forecast[forecast < 0] = 0
     print(forecast)
     forecast[date_col] = forecast.index
     return forecast, processed_value_df
