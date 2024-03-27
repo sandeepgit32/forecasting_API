@@ -1,5 +1,6 @@
 import os
 import itertools
+import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 from dotenv import load_dotenv
@@ -224,3 +225,26 @@ def calculate_forecast_data(
     print(forecast)
     forecast[date_col] = forecast.index
     return forecast, processed_value_df
+
+
+def calculate_forecast_accuracy(
+    data_df, 
+    forecast_length, 
+    date_col, 
+    value_col, 
+    forecast_type, 
+    period_of_seasonality
+):
+    processed_value_df = process_data(
+        data_df, date_col, value_col, forecast_type
+    )
+    forecast_ci, mean_forecast = get_forecast_using_sarimax_model(
+        processed_value_df[:-forecast_length], forecast_length, value_col, period_of_seasonality
+    )
+    y_forecasted = mean_forecast
+    y_truth = processed_value_df[-forecast_length:]
+    mse = round(((y_forecasted - y_truth) ** 2).mean(), 2)
+    mape = round(np.mean(np.abs((y_truth - y_forecasted)/y_truth))*100, 2)
+    bias = round((np.sum(y_forecasted - y_truth)/np.sum(y_truth))*100, 2)
+    print("mse, mape, bias -------->", mse, mape, bias)
+    return mse, mape, bias

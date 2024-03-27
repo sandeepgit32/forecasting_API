@@ -40,21 +40,18 @@
                 {% if status == "True" %}
                     <div>
                         <span class="login100-form-title p-b-51">
-                            Outlier detection done
+                            Forecasting Accuracy Measures
                         </span>
-                        <div style="text-align:center">
-                            <p><b>Outlier data</b></p>
-                            <p>{{ outlierDataPath }}</p>
-                        </div>
-                        <div style="text-align:center">
-                            <p><b>Data without outlier</b></p>
-                            <p>{{ dataWithoutOutlierPath }}</p>
-                        </div>
+                    </div>
+                    <div style="text-align:center">
+                        <p><b>MSE = {{ mse }}</b></p>
+                        <p><b>MAPE = {{ mape }}</b></p>
+                        <p><b>BIAS = {{ bias }}</b></p>
                     </div>
                 {% else %}
                     <div>
                         <span class="login100-form-title p-b-51">
-                            Error in outlier detection
+                            Error in forecasting
                         </span>
                     </div>
                     <div style="text-align:center">
