@@ -10,7 +10,7 @@ CONFIDENCE_LEVEL = float(os.environ.get("CONFIDENCE_LEVEL"))
 def process_data(value_df, date_col, value_col, forecast_type):
     """
     This function will process the value_df containing the date-wise values
-    by aggregating the into month-wise summary.
+    by aggregating the into month-wise/week-wise summary.
     """
     value_df.set_index(date_col, inplace=True)
     if forecast_type == "monthly":
