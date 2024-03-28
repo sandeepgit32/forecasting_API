@@ -110,23 +110,13 @@ def index():
 @app.route("/forecast", methods=["GET"])
 def forecast():
     """
-    Endpoint for performing forecasting.
+    Perform forecasting based on the provided parameters.
 
-    GET Method:
-    - Returns the forecast data path if it exists.
-    - Returns a 404 error if no forecast data is found.
+    Returns:
+        A rendered template with the forecast status and data path.
 
-    POST Method:
-    - Accepts input data in JSON format.
-    - The input data should have the following format:
-        {
-            "filePath": <string>
-            "forecastLength": <integer>
-        }
-    - Performs forecasting using the provided input data.
-    - Returns the forecast data path if successful.
-    - Returns a 400 error if the input is invalid.
-    - Returns a 500 error if there is an error in forecasting.
+    Raises:
+        ValueError: If any of the required parameters are missing or invalid.
     """
     if request.method == "GET":
         try:
@@ -138,6 +128,7 @@ def forecast():
                 message="Environment variable in the server not set"
             )
         try:
+            algorithm = request.args.get("algorithm")
             forecast_length = int(request.args.get("forecastLength"))
             date_col = request.args.get("dateCol")
             value_col = request.args.get("valueCol")
@@ -153,6 +144,7 @@ def forecast():
             )
         if (
             (DATA_WITHOUT_OUTLIER_PATH is None)
+            or (algorithm is None)
             or (forecast_length is None)
             or (date_col is None)
             or (value_col is None)
@@ -198,18 +190,36 @@ def forecast():
                 return render_template(
                     "forecast.html", status="False", message=data_df["message"]
                 )
-            forecast, historical_data = utils.calculate_forecast_data(
-                data_df,
-                forecast_length,
-                date_col,
-                value_col,
-                forecast_type,
-                period_of_seasonality,
-            )
+            if algorithm == "arima":
+                forecast, historical_data = utils.calculate_forecast_data(
+                    data_df,
+                    forecast_length,
+                    date_col,
+                    value_col,
+                    forecast_type,
+                    period_of_seasonality,
+                )
+                algo_name_text = "ARIMA"
+            elif algorithm == "prophet":
+                forecast, historical_data = utils.calculate_prophet_forecast_data(
+                    data_df,
+                    forecast_length,
+                    date_col,
+                    value_col,
+                    forecast_type
+                )
+                algo_name_text = "Prophet"
+            else:
+                return render_template(
+                    "forecast.html", status="False", message="The algorithm is not supported. Use `arima` or `prophet`."
+                )
             forecast.to_csv(forecastDataPath, index=False)
             historical_data.to_csv(historicalDataPath)
             return render_template(
-                "forecast.html", status="True", dataPath=forecastDataPath
+                "forecast.html", 
+                status="True", 
+                algorithm=algo_name_text, 
+                dataPath=forecastDataPath
             )
         except:
             return render_template(

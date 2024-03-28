@@ -2,6 +2,7 @@ import os
 import itertools
 import numpy as np
 import pandas as pd
+from prophet import Prophet
 import statsmodels.api as sm
 from dotenv import load_dotenv
 load_dotenv(".env", verbose=True)
@@ -220,10 +221,49 @@ def calculate_forecast_data(
     )
     print('-------->', forecast_ci, mean_forecast)
     forecast = pd.concat([forecast_ci, mean_forecast], axis=1)
-    # eliminate the negative values from the forecast
+    # Eliminate the negative values from the forecast
     forecast[forecast < 0] = 0
+    print('-------->')
     print(forecast)
     forecast[date_col] = forecast.index
     return forecast, processed_value_df
 
 
+def calculate_prophet_forecast_data(
+    data_df, 
+    forecast_length, 
+    date_col, 
+    value_col, 
+    forecast_type, 
+):
+    processed_value_df = process_data(
+        data_df, date_col, value_col, forecast_type
+    )
+    # Move the index of the series processed_value_df to a column
+    df = processed_value_df.copy()
+    df = df.reset_index()
+    df1 = pd.DataFrame()
+    df1['ds'] = pd.to_datetime(df[date_col])
+    df1['y'] = df[value_col]
+    m = Prophet()
+    m.fit(df1)
+    # freq = 'M' for monthly and 'W' stands for weekly frequency.
+    future = m.make_future_dataframe(
+        periods=forecast_length,
+        freq='M' if forecast_type == 'monthly' else 'W'
+    )  
+    forecast = m.predict(future)
+    forecast = forecast[-forecast_length:]
+    forecast = forecast[['ds', 'yhat', 'yhat_lower', 'yhat_upper']]
+    # Eliminate the negative values from the forecast
+    forecast['yhat'][forecast['yhat'] < 0] = 0
+    forecast['yhat_lower'][forecast['yhat_lower'] < 0] = 0
+    # Rename columns for the dataframe
+    forecast.columns = [date_col, 'predicted_mean', 'lower Sales', 'upper Sales']
+    # Advance the date by one day to make it compatible with ARIMA forecast
+    forecast[date_col] = forecast[date_col] + pd.DateOffset(days=1)
+    print('-------->', len(forecast))
+    print(forecast)
+    print('-------->', len(processed_value_df))
+    print(processed_value_df)
+    return forecast, processed_value_df

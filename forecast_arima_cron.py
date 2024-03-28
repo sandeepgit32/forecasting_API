@@ -4,17 +4,18 @@ import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 
-INPUT_DATA_PATH = "files/Superstore.xlsx"  # Provide the input file path here
 DATE_COL = "Order Date" # Provide the "date" column name here
 VALUE_COL = "Sales" # Provide the "value" column name here
 PRODUCT_FAMILY_COLUMN = "Category" # Provide the "product family" column name here
 PRODUCT_NAME_COLUMN = "Product Name" # Provide the "product name" column name here
 PERIOD_OF_SEASONALITY = 12 # Provide the period of seasonality here
 FORECAST_TYPE = "monthly" # Provide the forecast type here ("monthly" or "weekly")
-ALL_FORECAST_RESULT_PATH = os.path.join("files", f"all_forecast_result_{FORECAST_TYPE}.csv") # Provide the monthly/weekly forcast result file path here
-ALL_FORECAST_ACCURACY_PATH = os.path.join("files", f"all_forecast_accuracy_{FORECAST_TYPE}.csv") # Provide the monthly/weekly forcast accuracy file path here
 FORECAST_LENGTH = 6 # Provide the forecast length here
 CONFIDENCE_LEVEL = 90
+# Path variables
+INPUT_DATA_PATH = os.path.join("files", "Superstore.xlsx")  # Provide the input file path here
+ALL_FORECAST_RESULT_PATH = os.path.join("files", f"all_arima_forecast_result_{FORECAST_TYPE}.csv") # Provide the monthly/weekly forcast result file path here
+ALL_FORECAST_ACCURACY_PATH = os.path.join("files", f"all_arima_forecast_accuracy_{FORECAST_TYPE}.csv") # Provide the monthly/weekly forcast accuracy file path here
 
 
 def process_data(value_df, date_col, value_col, forecast_type):
@@ -260,30 +261,35 @@ def main():
                 VALUE_COL,
                 FORECAST_TYPE
             )
-            # forecast_df = calculate_forecast_data(
-            #     processed_value_df,
-            #     FORECAST_LENGTH,
-            #     DATE_COL,
-            #     VALUE_COL,
-            #     FORECAST_TYPE,
-            #     PERIOD_OF_SEASONALITY,
-            # )
-            # forecast_df["Product Family"] = product_family
-            # forecast_df["Product Name"] = product_name
-            # forecast_df.to_csv(
-            #     ALL_FORECAST_RESULT_PATH, 
-            #     index=False,
-            #     mode='a', 
-            #     header = not os.path.exists(ALL_FORECAST_RESULT_PATH))
-
-            mse, mape, bias, accuracy = calculate_forecast_accuracy(
-                processed_value_df, 
-                FORECAST_LENGTH,
-                DATE_COL,
-                VALUE_COL,
-                FORECAST_TYPE,
-                PERIOD_OF_SEASONALITY
-            )
+            try:
+                forecast_df = calculate_forecast_data(
+                    processed_value_df,
+                    FORECAST_LENGTH,
+                    DATE_COL,
+                    VALUE_COL,
+                    FORECAST_TYPE,
+                    PERIOD_OF_SEASONALITY,
+                )
+            except:
+                continue
+            forecast_df["Product Family"] = product_family
+            forecast_df["Product Name"] = product_name
+            forecast_df.to_csv(
+                ALL_FORECAST_RESULT_PATH, 
+                index=False,
+                mode='a', 
+                header = not os.path.exists(ALL_FORECAST_RESULT_PATH))
+            try:
+                mse, mape, bias, accuracy = calculate_forecast_accuracy(
+                    processed_value_df, 
+                    FORECAST_LENGTH,
+                    DATE_COL,
+                    VALUE_COL,
+                    FORECAST_TYPE,
+                    PERIOD_OF_SEASONALITY
+                )
+            except:
+                mse, mape, bias, accuracy = None, None, None, None
             # append data into accuracy_df dataframe
             df_dictionary = pd.DataFrame([{
                 "Product Family": product_family,
