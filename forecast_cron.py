@@ -1,16 +1,18 @@
 import os
 import itertools
+import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 
 INPUT_DATA_PATH = "files/Superstore.xlsx"  # Provide the input file path here
-ALL_FORECAST_RESULT_PATH = "files/all_forecast_result_monthly.csv" # Provide the monthly/weekly forcast result file path here
 DATE_COL = "Order Date" # Provide the "date" column name here
 VALUE_COL = "Sales" # Provide the "value" column name here
 PRODUCT_FAMILY_COLUMN = "Category" # Provide the "product family" column name here
 PRODUCT_NAME_COLUMN = "Product Name" # Provide the "product name" column name here
 PERIOD_OF_SEASONALITY = 12 # Provide the period of seasonality here
-FORECAST_TYPE = "weekly" # Provide the forecast type here ("monthly" or "weekly")
+FORECAST_TYPE = "monthly" # Provide the forecast type here ("monthly" or "weekly")
+ALL_FORECAST_RESULT_PATH = os.path.join("files", f"all_forecast_result_{FORECAST_TYPE}.csv") # Provide the monthly/weekly forcast result file path here
+ALL_FORECAST_ACCURACY_PATH = os.path.join("files", f"all_forecast_accuracy_{FORECAST_TYPE}.csv") # Provide the monthly/weekly forcast accuracy file path here
 FORECAST_LENGTH = 6 # Provide the forecast length here
 CONFIDENCE_LEVEL = 90
 
@@ -178,16 +180,13 @@ def filter_data_for_product_family_and_product_name(
 
 
 def calculate_forecast_data(
-    data_df, 
+    processed_value_df, 
     forecast_length, 
     date_col, 
     value_col, 
     forecast_type, 
     period_of_seasonality
 ):
-    processed_value_df = process_data(
-        data_df, date_col, value_col, forecast_type
-    )
     forecast_ci, mean_forecast = get_forecast_using_sarimax_model(
         processed_value_df, forecast_length, value_col, period_of_seasonality
     )
@@ -195,6 +194,37 @@ def calculate_forecast_data(
     forecast[forecast < 0] = 0
     forecast[date_col] = forecast.index
     return forecast
+
+
+def calculate_forecast_accuracy(
+    processed_value_df, 
+    forecast_length, 
+    date_col, 
+    value_col, 
+    forecast_type, 
+    period_of_seasonality
+):
+    forecast_ci, mean_forecast = get_forecast_using_sarimax_model(
+        processed_value_df[:-forecast_length], forecast_length, value_col, period_of_seasonality
+    )
+    mean_forecast[mean_forecast < 0] = 0
+    y_forecasted = mean_forecast
+    y_truth = processed_value_df[-forecast_length:]
+    print('--------y_truth-------->')
+    print(y_truth)
+    print('--------y_forecasted-------->')
+    print(y_forecasted)
+    mse = round(((y_forecasted - y_truth) ** 2).mean(), 2)
+    # If an element of y_truth is zero, then the percentage error is undefined.
+    # To avoid this, we skip the element if y_truth is zero and the corresponding element in y_forecasted is non-zero.
+    non_zero_mask = (y_truth != 0)
+    y_truth_non_zero = y_truth[non_zero_mask]
+    y_forecasted_non_zero = y_forecasted[non_zero_mask]
+    mape = round(np.mean(np.abs((y_truth_non_zero - y_forecasted_non_zero)/y_truth_non_zero))*100, 2)
+    bias = round((np.sum(y_forecasted_non_zero - y_truth_non_zero)/np.sum(y_truth_non_zero))*100, 2)
+    accuracy = round(100 - mape, 2)
+    print("mse, mape, bias -------->", mse, mape, bias)
+    return mse, mape, bias, accuracy
 
 
 def main():
@@ -209,6 +239,7 @@ def main():
     product_name_list = invoice_df[PRODUCT_NAME_COLUMN].unique().tolist()
     product_family_list.append("All")
     product_name_list.append("All")
+    accuracy_df = pd.DataFrame(columns=["Product Family", "Product Name", "MSE", "MAPE", "Bias", "Accuracy"])
     for product_family in product_family_list:
         for product_name in product_name_list:
             print(f"Processing forecast for {product_family} - {product_name}")
@@ -223,21 +254,54 @@ def main():
             )
             if data_df.empty:
                 continue
-            forecast_df = calculate_forecast_data(
-                data_df,
+            processed_value_df = process_data(
+                data_df, 
+                DATE_COL,
+                VALUE_COL,
+                FORECAST_TYPE
+            )
+            # forecast_df = calculate_forecast_data(
+            #     processed_value_df,
+            #     FORECAST_LENGTH,
+            #     DATE_COL,
+            #     VALUE_COL,
+            #     FORECAST_TYPE,
+            #     PERIOD_OF_SEASONALITY,
+            # )
+            # forecast_df["Product Family"] = product_family
+            # forecast_df["Product Name"] = product_name
+            # forecast_df.to_csv(
+            #     ALL_FORECAST_RESULT_PATH, 
+            #     index=False,
+            #     mode='a', 
+            #     header = not os.path.exists(ALL_FORECAST_RESULT_PATH))
+
+            mse, mape, bias, accuracy = calculate_forecast_accuracy(
+                processed_value_df, 
                 FORECAST_LENGTH,
                 DATE_COL,
                 VALUE_COL,
                 FORECAST_TYPE,
-                PERIOD_OF_SEASONALITY,
+                PERIOD_OF_SEASONALITY
             )
-            forecast_df["Product Family"] = product_family
-            forecast_df["Product Name"] = product_name
-            forecast_df.to_csv(
-                ALL_FORECAST_RESULT_PATH, 
+            # append data into accuracy_df dataframe
+            df_dictionary = pd.DataFrame([{
+                "Product Family": product_family,
+                "Product Name": product_name,
+                "MSE": mse,
+                "MAPE": mape,
+                "Bias": bias,
+                "Accuracy": accuracy
+            }])
+            accuracy_df = pd.concat(
+                [accuracy_df, df_dictionary], 
+                ignore_index=True
+            )
+            accuracy_df.to_csv(
+                ALL_FORECAST_ACCURACY_PATH, 
                 index=False,
                 mode='a', 
-                header = not os.path.exists(ALL_FORECAST_RESULT_PATH))
+                header = not os.path.exists(ALL_FORECAST_ACCURACY_PATH))
 
 
 if __name__ == "__main__":
